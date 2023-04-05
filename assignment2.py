@@ -6,36 +6,58 @@ import wbgapi as wb
 import seaborn as sns
 
 
-def world(x, y, z):
+def world(ind, code, years):
     '''
-    the function transposes the data and returns the original and transposed data
+    this function returns original data, transposed data and world data for above indicators
 
     Parameters
     ----------
-    x : the index key of the data
-    y : the country code
-    z : the data count
+    ind : index
+    code : country code
+    years : total number of years
 
     Returns
     -------
+    data : original data
     data_t : transposed data
-    worlddata : the complete world data
+    worlddata : complete world data
 
     '''
-    data = wb.data.DataFrame(x, y, mrv=z)
+    data = wb.data.DataFrame(ind, code, mrv=years)
     data_t = data.T
-    worlddata = wb.data.DataFrame(x, mrv=z)
-    return data_t, worlddata
+    worlddata = wb.data.DataFrame(ind, mrv=years)
+    return data, data_t, worlddata
+
+
+def modify(data):
+    '''
+    this method can be used to clean up and generate modified data
+
+    Parameters
+    ----------
+    data : the data to be modified
+
+    Returns
+    -------
+    data_mod1 : modified data with mean
+    data_mod3 : modified data after indexing and renaming
+
+    '''
+    data_mod1 = data.mean()
+    data_mod2 = pd.DataFrame(data_mod1)
+    data_mod2.reset_index(level=0, inplace=True)
+    data_mod3 = data_mod2.rename(columns={"index": "year", 0: "mean"})
+    return data_mod1, data_mod3
 
 
 def box(x, y):
     '''
-    generate box plot comparing the countries- INDIA, UNITED KINGDOM, CHINA with world
+    box plot comparing the countries- INDIA, UNITED KINGDOM, CHINA with world
 
     Parameters
     ----------
-    x : x-axis data
-    y : y-axis data
+    x : data for x-axis
+    y : Tdata for y-axis
 
     Returns
     -------
@@ -60,81 +82,61 @@ indicator_id = {"EN.ATM.GHGT.KT.CE", "EN.ATM.CO2E.KT",
 
 #creating dictionary to access indicators.
 AG = {"AG.LND.AGRI.ZS": "AGRICULTURAL LAND(%)"}
-AGL = {"AG.LND.ARBL.ZS": "ARABLE LAND (%)"}
+ABL = {"AG.LND.ARBL.ZS": "ARABLE LAND (%)"}
 CO2 = {"EN.ATM.CO2E.KT": "CO2 EMISSIONS(KT)"}
 GHG = {"EN.ATM.GHGT.KT.CE": "TOTAL GREENHOUSE GAS EMISSIONS(KT)"}
 
 wb.series.info(indicator_id)
 
 #accessing data by calling "world" function
-AG_T, AG_world = world(AG.keys(), country_codes, 30)
+AG, AG_T, AG_world = world(AG.keys(), country_codes, 30)
+AG_T.describe()
 
 #accessing data by calling "world" function
-CO2_T, CO2_world = world(CO2.keys(), country_codes, 30)
+Co2, CO2_T, CO2_world = world(CO2.keys(), country_codes, 30)
+CO2_T.describe()
+
 
 #accessing data by calling "world" function
-AGL_T, AGL_world = world(AGL.keys(), country_codes, 30)
+ABL, ABL_T, ABL_world = world(ABL.keys(), country_codes, 30)
+ABL_T.describe()
 
 #accessing data by calling "world" function
-GHG_T, GHG_world = world(GHG.keys(), country_codes, 30)
+GHG, GHG_T, GHG_world = world(GHG.keys(), country_codes, 30)
+GHG_T.describe()
 
-#performing few operations like mean and renaming index to compare with world data
-C = CO2_world.mean()
-C1 = pd.DataFrame(C)
-C1.reset_index(level=0, inplace=True)
-CO2W = C1.rename(columns={"index": "year", 0: "mean"})
-
-G = GHG_world.mean()
-G1 = pd.DataFrame(G)
-G1.reset_index(level=0, inplace=True)
-GHGW = G1.rename(columns={"index": "year", 0: "mean"})
-
-A = AG_world.mean()
-A1 = pd.DataFrame(A)
-A1.reset_index(level=0, inplace=True)
-AGW = A1.rename(columns={"index": "year", 0: "mean"})
-
-AL = AGL_world.mean()
-AL1 = pd.DataFrame(AL)
-AL1.reset_index(level=0, inplace=True)
-AGLW = AL1.rename(columns={"index": "year", 0: "mean"})
-
+#modified data for Co2
+co2_mod, co2_W_mod = modify(CO2_world)
+Ghg_mod, Ghg_W_mod = modify(GHG_world)
+ag_mod, ag_W_mod = modify(AG_world)
+abl_mod, abl_W_mod = modify(ABL_world)
+abl_W_mod.describe()
 c = CO2_T.rename(columns={"index": "year", 0: "mean"})
 co2_t = c.rename_axis("year")
-
 a = AG_T.rename(columns={"index": "year", 0: "mean"})
 ag_t = a.rename_axis("year")
-
-ag = AGL_T.rename(columns={"index": "year", 0: "mean"})
+ag = ABL_T.rename(columns={"index": "year", 0: "mean"})
 agl_t = ag.rename_axis("year")
-
 g = GHG_T.rename(columns={"index": "year", 0: "mean"})
 ghg_t = g.rename_axis("year")
 
-# Making plot between foreast cover and arable land for whole world
+# generate line plot of foreast cover over arable land for whole world
 fig, ax = plt.subplots(figsize=[7, 3])
-color1 = "BLACK"
-color2 = "RED"
-color3 = "BLUE"
-
-ax.plot(AGLW["year"], AGLW["mean"], marker="*", color=color1)
-ax.set_ylabel("Arable land (% of land area)", color=color1, fontsize=7)
-ax.set_xlabel("Year", color=color1, fontsize=16)
+ax.plot(abl_W_mod["year"], abl_W_mod["mean"], marker="*")
+ax.set_ylabel("Arable land (% of land area)", fontsize=7)
+ax.set_xlabel("Year", fontsize=16)
 plt.xticks(rotation=90)
-
 ax1 = ax.twinx()
-ax1.plot(AGW["year"], AGW["mean"], color=color2, marker="o")
+ax1.plot(ag_W_mod["year"], ag_W_mod["mean"], color="RED", marker="o")
 ax1.set_ylabel("Agricultural land (% of land area)",
-               color=color2,
                fontsize=7)
-
-plt.margins(x=0)
 plt.title("Time series plot of ARABLE LAND and AGRICULTURAL LAND (% of total land)")
+plt.show()
 
-#boxplot
-dd = [CO2_T["IND"], CO2_T["NAC"], CO2_T["CHN"], CO2W["mean"]]
-ff = ["INDIA", "UNITED KINGDOM", "CHINA", "world"]
-box(dd, ff)
+#geberate box plot
+data = [CO2_T["IND"], CO2_T["NAC"], CO2_T["CHN"], co2_W_mod["mean"]]
+coun = ["INDIA", "UNITED KINGDOM", "CHINA", "world"]
+box(data, coun)
 
 #violin plot for Green house gas emissian for countries, INDIA, UNITED KINGDOM, CHINA
 fig, (ax1, ax2, ax3) = plt.subplots(nrows=1, ncols=3)
@@ -150,10 +152,10 @@ ax3.set_xticks([1])
 ax3.set_xticklabels(["CHINA"])
 plt.show()
 
-#Heat map of agricultural land
+#Heat map of greenhouse gases
 rs = np.random.RandomState(0)
 FORW = pd.DataFrame(rs.rand(8, 8))
-corr = AG_T.corr()
+corr = GHG_T.corr()
 plt.figure(figsize=(6, 7))
 sns.heatmap(corr, annot=True)
 plt.show()
