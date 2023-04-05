@@ -135,3 +135,25 @@ plt.title("Time series plot of ARABLE LAND and AGRICULTURAL LAND (% of total lan
 dd = [CO2_T["IND"], CO2_T["NAC"], CO2_T["CHN"], CO2W["mean"]]
 ff = ["INDIA", "UNITED KINGDOM", "CHINA", "world"]
 box(dd, ff)
+
+#violin plot for Green house gas emissian for countries, INDIA, UNITED KINGDOM, CHINA
+fig, (ax1, ax2, ax3) = plt.subplots(nrows=1, ncols=3)
+ax1.violinplot(GHG_T["IND"], showmedians=True, points=10)
+ax1.set_xticks([1])
+ax1.set_ylabel("GREEN HOUSE GAS EMISSION")
+ax1.set_xticklabels(["INDIA"])
+ax2.violinplot(GHG_T["GBR"], showmedians=True, points=100)
+ax2.set_xticks([1])
+ax2.set_xticklabels(["UK"])
+ax3.violinplot(GHG_T["CHN"], showmedians=True, points=500)
+ax3.set_xticks([1])
+ax3.set_xticklabels(["CHINA"])
+plt.show()
+
+#Heat map of agricultural land
+rs = np.random.RandomState(0)
+FORW = pd.DataFrame(rs.rand(8, 8))
+corr = AG_T.corr()
+plt.figure(figsize=(6, 7))
+sns.heatmap(corr, annot=True)
+plt.show()
