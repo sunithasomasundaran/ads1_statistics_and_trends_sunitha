@@ -75,6 +75,7 @@ def box(x, y):
     plt.show()
     return
 
+
 country_codes = ["PAK", "GBR", "CHN", "NAC", "IND"]  # country codes
 wb.series.info('EN.ATM.GHGT.KT.CE')  # getting info from world bank api
 indicator_id = {"EN.ATM.GHGT.KT.CE", "EN.ATM.CO2E.KT",
